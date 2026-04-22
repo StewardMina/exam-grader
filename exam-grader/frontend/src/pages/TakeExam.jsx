@@ -55,7 +55,7 @@ export default function TakeExam() {
         studentGrade: student.studentGrade,
         answers: answerList,
       });
-      navigate('/done', { state: result });
+      navigate('/done', { state: { ...result, studentName: student.studentName, studentGrade: student.studentGrade, subjectCode: student.subjectCode } });
     } catch (e) {
       setError(e.message);
       setStep('exam');

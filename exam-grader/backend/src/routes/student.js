@@ -122,4 +122,22 @@ router.post('/exam/:examId/submit', async (req, res) => {
   });
 });
 
+// Get student's past submissions by name + grade + subject code
+router.get('/my-results', async (req, res) => {
+  const { name, grade, code } = req.query;
+  if (!name || !grade || !code) return res.status(400).json({ error: 'Faltan parámetros' });
+  const subject = await prisma.subject.findUnique({ where: { code: code.toUpperCase() } });
+  if (!subject) return res.status(404).json({ error: 'Materia no encontrada' });
+  const submissions = await prisma.submission.findMany({
+    where: {
+      studentName: name,
+      studentGrade: grade,
+      exam: { subjectId: subject.id },
+    },
+    include: { exam: { select: { title: true } } },
+    orderBy: { submittedAt: 'desc' },
+  });
+  res.json(submissions);
+});
+
 module.exports = router;
