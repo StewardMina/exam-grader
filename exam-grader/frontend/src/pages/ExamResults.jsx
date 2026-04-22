@@ -47,7 +47,7 @@ export default function ExamResults() {
               <thead>
                 <tr>
                   <th>Alumno</th>
-                  <th>Email</th>
+                  <th>Grado</th>
                   <th>Fecha</th>
                   <th>Calificación</th>
                   <th>Estado</th>
@@ -58,7 +58,7 @@ export default function ExamResults() {
                 {data.submissions.map(s => (
                   <tr key={s.id}>
                     <td><strong>{s.studentName}</strong></td>
-                    <td>{s.studentEmail}</td>
+                    <td>{s.studentGrade}</td>
                     <td>{s.submittedAt ? new Date(s.submittedAt).toLocaleDateString('es') : '-'}</td>
                     <td>
                       {s.score !== null

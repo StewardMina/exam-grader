@@ -41,8 +41,8 @@ router.get('/exam/:examId', async (req, res) => {
 
 // Submit exam
 router.post('/exam/:examId/submit', async (req, res) => {
-  const { studentName, studentEmail, answers } = req.body;
-  if (!studentName || !studentEmail) return res.status(400).json({ error: 'Nombre y email requeridos' });
+  const { studentName, studentGrade, answers } = req.body;
+  if (!studentName || !studentGrade) return res.status(400).json({ error: 'Nombre y grado requeridos' });
 
   const exam = await prisma.exam.findFirst({
     where: { id: req.params.examId, isActive: true },
@@ -86,7 +86,7 @@ router.post('/exam/:examId/submit', async (req, res) => {
     data: {
       examId: exam.id,
       studentName,
-      studentEmail,
+      studentGrade,
       submittedAt: new Date(),
       score: isPending ? null : score,
       totalPoints,
@@ -103,7 +103,7 @@ router.post('/exam/:examId/submit', async (req, res) => {
       teacherEmail: exam.subject.teacher.email,
       teacherName: exam.subject.teacher.name,
       studentName,
-      studentEmail,
+      studentGrade,
       examTitle: exam.title,
       score: isPending ? null : score,
       totalPoints,

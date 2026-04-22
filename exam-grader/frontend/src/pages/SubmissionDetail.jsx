@@ -33,7 +33,7 @@ export default function SubmissionDetail() {
           <div>
             <Link to={`/exams/${sub.exam.id}/results`} style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>← Resultados</Link>
             <h1>{sub.studentName}</h1>
-            <p style={{ color: 'var(--muted)' }}>{sub.studentEmail} — {sub.exam.title}</p>
+            <p style={{ color: 'var(--muted)' }}>Grado: {sub.studentGrade} — {sub.exam.title}</p>
           </div>
           <div style={{ textAlign: 'right' }}>
             {sub.score !== null && (

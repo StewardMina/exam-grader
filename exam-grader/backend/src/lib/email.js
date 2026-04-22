@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-async function sendResultEmail({ teacherEmail, teacherName, studentName, studentEmail, examTitle, score, totalPoints, isPending, submissionId }) {
+async function sendResultEmail({ teacherEmail, teacherName, studentName, studentGrade, examTitle, score, totalPoints, isPending, submissionId }) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
 
   const subject = isPending
@@ -17,7 +17,7 @@ async function sendResultEmail({ teacherEmail, teacherName, studentName, student
 
   const html = `
     <h2>Nuevo resultado de examen</h2>
-    <p><strong>Alumno:</strong> ${studentName} (${studentEmail})</p>
+    <p><strong>Alumno:</strong> ${studentName} — Grado: ${studentGrade}</p>
     <p><strong>Examen:</strong> ${examTitle}</p>
     ${isPending
       ? `<p><strong>Estado:</strong> Tiene preguntas abiertas pendientes de calificación manual.</p>`

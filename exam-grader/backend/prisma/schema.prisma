@@ -63,7 +63,7 @@ model Submission {
   examId       String
   exam         Exam      @relation(fields: [examId], references: [id])
   studentName  String
-  studentEmail String
+  studentGrade String
   startedAt    DateTime  @default(now())
   submittedAt  DateTime?
   score        Float?

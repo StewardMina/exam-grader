@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { api } from '../api/client';
 
 export default function TakeExam() {
   const { examId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const student = location.state || {};
   const [exam, setExam] = useState(null);
-  const [step, setStep] = useState('info'); // info | exam | submitting
-  const [student, setStudent] = useState({ name: '', email: '' });
+  const [step, setStep] = useState('exam'); // exam | submitting
   const [answers, setAnswers] = useState({});
   const [timeLeft, setTimeLeft] = useState(null);
   const [error, setError] = useState('');
@@ -16,6 +17,10 @@ export default function TakeExam() {
   useEffect(() => {
     api.get(`/api/student/exam/${examId}`).then(setExam).catch(() => setError('Examen no disponible'));
   }, [examId]);
+
+  useEffect(() => {
+    if (!location.state) navigate('/');
+  }, []);
 
   useEffect(() => {
     if (step === 'exam' && exam?.timeLimit > 0) {
@@ -46,8 +51,8 @@ export default function TakeExam() {
     });
     try {
       const result = await api.post(`/api/student/exam/${examId}/submit`, {
-        studentName: student.name,
-        studentEmail: student.email,
+        studentName: student.studentName,
+        studentGrade: student.studentGrade,
         answers: answerList,
       });
       navigate('/done', { state: result });
@@ -59,30 +64,6 @@ export default function TakeExam() {
 
   if (error) return <div style={{ textAlign: 'center', padding: '4rem' }}><p style={{ color: 'var(--danger)' }}>{error}</p></div>;
   if (!exam) return <div style={{ textAlign: 'center', padding: '4rem' }}>Cargando...</div>;
-
-  if (step === 'info') return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="card" style={{ width: '100%', maxWidth: '450px' }}>
-        <h1 style={{ marginBottom: '0.5rem' }}>{exam.title}</h1>
-        {exam.description && <p style={{ color: 'var(--muted)', marginBottom: '1rem' }}>{exam.description}</p>}
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-          <span className="badge badge-gray">{exam.questions.length} preguntas</span>
-          {exam.timeLimit > 0 && <span className="badge badge-yellow">⏱ {exam.timeLimit} min</span>}
-        </div>
-        <form onSubmit={e => { e.preventDefault(); setStep('exam'); }}>
-          <div className="form-group">
-            <label>Tu nombre completo</label>
-            <input value={student.name} onChange={e => setStudent({ ...student, name: e.target.value })} required />
-          </div>
-          <div className="form-group">
-            <label>Tu email</label>
-            <input type="email" value={student.email} onChange={e => setStudent({ ...student, email: e.target.value })} required />
-          </div>
-          <button className="btn btn-primary" style={{ width: '100%' }}>Comenzar examen →</button>
-        </form>
-      </div>
-    </div>
-  );
 
   if (step === 'submitting') return <div style={{ textAlign: 'center', padding: '4rem' }}>Enviando respuestas...</div>;
 
