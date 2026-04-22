@@ -27,6 +27,9 @@ export default function Login() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
+        <Link to="/" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: 'var(--muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
+          ← Volver al inicio
+        </Link>
         <h1 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>📝 Iniciar Sesión</h1>
         <form onSubmit={handleSubmit}>
           <div className="form-group">

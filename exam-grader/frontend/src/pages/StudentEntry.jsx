@@ -101,7 +101,7 @@ export default function StudentEntry() {
           </button>
         </form>
       </div>
-      <p style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>¿Eres docente? <a href="/login">Iniciar sesión</a></p>
+      <p style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>¿Eres docente? <a href="/login">← Iniciar sesión</a></p>
     </div>
   );
 }
