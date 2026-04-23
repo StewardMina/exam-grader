@@ -78,11 +78,11 @@ export default function ExamDone() {
 
         {/* Acciones */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-          <button className="btn btn-primary" style={{ width: '100%', padding: '0.75rem' }} onClick={() => navigate('/', { state: { prefill: { name: result.studentName, grade: result.studentGrade, code: result.subjectCode } } })}>
+          <button className="btn btn-primary" style={{ width: '100%', padding: '0.75rem' }} onClick={() => navigate('/student')}>
             📋 Ver mis exámenes
           </button>
-          <button className="btn btn-outline" style={{ width: '100%', padding: '0.75rem' }} onClick={() => navigate('/')}>
-            🏠 Inicio
+          <button className="btn btn-outline" style={{ width: '100%', padding: '0.75rem' }} onClick={() => { sessionStorage.removeItem('student'); navigate('/'); }}>
+            🚪 Salir
           </button>
         </div>
 

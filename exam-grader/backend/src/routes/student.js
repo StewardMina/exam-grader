@@ -9,6 +9,19 @@ router.post('/enter', async (req, res) => {
   if (!code) return res.status(400).json({ error: 'Código requerido' });
   const subject = await prisma.subject.findUnique({
     where: { code: code.toUpperCase() },
+    include: { teacher: { select: { name: true } } },
+  });
+  if (!subject) return res.status(404).json({ error: 'Código de materia no encontrado' });
+  res.json({ id: subject.id, name: subject.name, code: subject.code, teacher: subject.teacher });
+});
+
+// Get dashboard for student: all subjects with their exams and results
+router.post('/dashboard', async (req, res) => {
+  const { name, grade, codes } = req.body;
+  if (!name || !grade || !codes?.length) return res.status(400).json({ error: 'Datos incompletos' });
+
+  const subjects = await prisma.subject.findMany({
+    where: { code: { in: codes.map(c => c.toUpperCase()) } },
     include: {
       teacher: { select: { name: true } },
       exams: {
@@ -17,8 +30,30 @@ router.post('/enter', async (req, res) => {
       },
     },
   });
-  if (!subject) return res.status(404).json({ error: 'Código de materia no encontrado' });
-  res.json({ subject: { id: subject.id, name: subject.name, code: subject.code, teacher: subject.teacher }, exams: subject.exams });
+
+  // For each subject, get this student's submissions
+  const result = await Promise.all(subjects.map(async subject => {
+    const submissions = await prisma.submission.findMany({
+      where: {
+        studentName: name,
+        studentGrade: grade,
+        exam: { subjectId: subject.id },
+      },
+      select: { id: true, examId: true, score: true, totalPoints: true, isPending: true, submittedAt: true, exam: { select: { title: true } } },
+      orderBy: { submittedAt: 'desc' },
+    });
+    const submittedExamIds = new Set(submissions.map(s => s.examId));
+    return {
+      id: subject.id,
+      name: subject.name,
+      code: subject.code,
+      teacher: subject.teacher,
+      exams: subject.exams.map(e => ({ ...e, alreadyDone: submittedExamIds.has(e.id) })),
+      submissions,
+    };
+  }));
+
+  res.json(result);
 });
 
 // Get exam for student (no correct answers)
@@ -29,9 +64,7 @@ router.get('/exam/:examId', async (req, res) => {
       subject: { include: { teacher: { select: { name: true, email: true } } } },
       questions: {
         orderBy: { order: 'asc' },
-        include: {
-          options: { select: { id: true, text: true } }, // no isCorrect!
-        },
+        include: { options: { select: { id: true, text: true } } },
       },
     },
   });
@@ -53,6 +86,12 @@ router.post('/exam/:examId/submit', async (req, res) => {
   });
   if (!exam) return res.status(404).json({ error: 'Examen no encontrado' });
 
+  // Prevent duplicate submissions
+  const existing = await prisma.submission.findFirst({
+    where: { examId: req.params.examId, studentName, studentGrade },
+  });
+  if (existing) return res.status(400).json({ error: 'Ya realizaste este examen', submissionId: existing.id, score: existing.score, totalPoints: existing.totalPoints, isPending: existing.isPending });
+
   let score = 0;
   let totalPoints = 0;
   let isPending = false;
@@ -61,24 +100,14 @@ router.post('/exam/:examId/submit', async (req, res) => {
   for (const question of exam.questions) {
     totalPoints += question.points;
     const studentAnswer = answers?.find(a => a.questionId === question.id);
-
     if (question.type === 'OPEN_TEXT') {
       isPending = true;
-      answerData.push({
-        questionId: question.id,
-        textAnswer: studentAnswer?.textAnswer || '',
-        points: null,
-      });
+      answerData.push({ questionId: question.id, textAnswer: studentAnswer?.textAnswer || '', points: null });
     } else {
       const selectedOption = question.options.find(o => o.id === studentAnswer?.selectedId);
-      const isCorrect = selectedOption?.isCorrect || false;
-      const pts = isCorrect ? question.points : 0;
+      const pts = selectedOption?.isCorrect ? question.points : 0;
       score += pts;
-      answerData.push({
-        questionId: question.id,
-        selectedId: studentAnswer?.selectedId || null,
-        points: pts,
-      });
+      answerData.push({ questionId: question.id, selectedId: studentAnswer?.selectedId || null, points: pts });
     }
   }
 
@@ -91,13 +120,10 @@ router.post('/exam/:examId/submit', async (req, res) => {
       score: isPending ? null : score,
       totalPoints,
       isPending,
-      answers: {
-        create: answerData,
-      },
+      answers: { create: answerData },
     },
   });
 
-  // Send email
   try {
     await sendResultEmail({
       teacherEmail: exam.subject.teacher.email,
@@ -114,30 +140,7 @@ router.post('/exam/:examId/submit', async (req, res) => {
     console.error('Email error:', e.message);
   }
 
-  res.json({
-    submissionId: submission.id,
-    score: isPending ? null : score,
-    totalPoints,
-    isPending,
-  });
-});
-
-// Get student's past submissions by name + grade + subject code
-router.get('/my-results', async (req, res) => {
-  const { name, grade, code } = req.query;
-  if (!name || !grade || !code) return res.status(400).json({ error: 'Faltan parámetros' });
-  const subject = await prisma.subject.findUnique({ where: { code: code.toUpperCase() } });
-  if (!subject) return res.status(404).json({ error: 'Materia no encontrada' });
-  const submissions = await prisma.submission.findMany({
-    where: {
-      studentName: name,
-      studentGrade: grade,
-      exam: { subjectId: subject.id },
-    },
-    include: { exam: { select: { title: true } } },
-    orderBy: { submittedAt: 'desc' },
-  });
-  res.json(submissions);
+  res.json({ submissionId: submission.id, score: isPending ? null : score, totalPoints, isPending });
 });
 
 module.exports = router;

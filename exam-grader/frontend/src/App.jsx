@@ -7,6 +7,7 @@ import ExamBuilder from './pages/ExamBuilder';
 import ExamResults from './pages/ExamResults';
 import SubmissionDetail from './pages/SubmissionDetail';
 import StudentEntry from './pages/StudentEntry';
+import StudentDashboard from './pages/StudentDashboard';
 import TakeExam from './pages/TakeExam';
 import ExamDone from './pages/ExamDone';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -17,6 +18,7 @@ export default function App() {
       <Routes>
         {/* Student routes */}
         <Route path="/" element={<StudentEntry />} />
+        <Route path="/student" element={<StudentDashboard />} />
         <Route path="/exam/:examId" element={<TakeExam />} />
         <Route path="/done" element={<ExamDone />} />
 
