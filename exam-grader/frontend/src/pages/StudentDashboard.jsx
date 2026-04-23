@@ -8,6 +8,7 @@ export default function StudentDashboard() {
   const [subjects, setSubjects] = useState([]);
   const [newCode, setNewCode] = useState('');
   const [codeError, setCodeError] = useState('');
+  const [dashError, setDashError] = useState('');
   const [loading, setLoading] = useState(true);
 
   const codesKey = `codes_${student?.name}_${student?.grade}`;
@@ -23,7 +24,9 @@ export default function StudentDashboard() {
     try {
       const data = await api.post('/api/student/dashboard', { name: student.name, grade: student.grade, codes });
       setSubjects(data);
-    } catch (e) {}
+    } catch (e) {
+      setDashError(e.message);
+    }
     setLoading(false);
   }
 
@@ -106,6 +109,7 @@ export default function StudentDashboard() {
         )}
 
         {loading && <p style={{ textAlign: 'center', color: 'var(--muted)' }}>Cargando...</p>}
+        {dashError && <div className="card" style={{ background: 'var(--danger-light)', borderColor: 'var(--danger)', color: 'var(--danger)' }}>Error: {dashError}</div>}
 
         {/* Materias */}
         {subjects.map(subject => (
