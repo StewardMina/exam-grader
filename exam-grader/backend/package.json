@@ -4,8 +4,7 @@
   "type": "commonjs",
   "scripts": {
     "dev": "nodemon src/index.js",
-    "start": "node src/index.js",
-    "build": "prisma generate",
+    "start": "npx prisma generate && node src/index.js",
     "db:push": "prisma db push",
     "db:studio": "prisma studio"
   },
