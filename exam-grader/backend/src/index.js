@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('express-async-errors');
 const express = require('express');
 const cors = require('cors');
 const app = express();
@@ -15,6 +16,12 @@ app.use('/api/exams', require('./routes/exams'));
 app.use('/api/questions', require('./routes/questions'));
 app.use('/api/student', require('./routes/student'));
 app.use('/api/results', require('./routes/results'));
+
+// Global error handler - returns JSON instead of HTML
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: err.message || 'Error interno del servidor' });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
